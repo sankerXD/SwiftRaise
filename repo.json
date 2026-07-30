@@ -4,7 +4,7 @@
     "Name": "SwiftRaise",
     "InternalName": "SwiftRaise",
     "Punchline": "治疗自动即刻复活鼠标悬停的倒地玩家",
-    "Description": "当前职业为治疗(白魔/学者/占星/贤者/幻术师)时，只要鼠标悬停到已死亡的玩家(小队列表或场景中均可)，就会自动使用即刻咏唱+复活。开关集成在右上角原生信息栏(服务器信息栏)中，点击切换，也可用 /sres。",
+    "Description": "当前职业拥有复活手段时(治疗/赤魔/召唤，或新月岛携带药剂师且习得苏生)，只要鼠标悬停到已死亡的玩家(小队列表或场景中均可)，就会自动使用即刻咏唱+复活；没有即刻时优先用苏生瞬发拉人。开关集成在右上角原生信息栏(服务器信息栏)中，点击切换，也可用 /sres。",
     "Tags": [
       "healer",
       "raise",
@@ -13,14 +13,14 @@
     ],
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/sankerXD/SwiftRaise",
-    "AssemblyVersion": "1.0.1.0",
+    "AssemblyVersion": "1.1.0.0",
     "DalamudApiLevel": 15,
-    "DownloadLinkInstall": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.0.1/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.0.1/latest.zip",
-    "DownloadLinkTesting": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.0.1/latest.zip",
+    "DownloadLinkInstall": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
+    "DownloadLinkTesting": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
     "IsHide": false,
     "IsTestingExclusive": false,
     "DownloadCount": 0,
-    "LastUpdate": 1785388093
+    "LastUpdate": 1785389494
   }
 ]
