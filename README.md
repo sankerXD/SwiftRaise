@@ -22,12 +22,16 @@ A Dalamud plugin for FFXIV (CN client): <b>automatically</b> casts Swiftcast + R
 **中文**：插件每帧检测，当同时满足以下两个条件时自动施放复活流程：
 
 - 当前职业拥有复活手段：治疗（白魔 / 学者 / 占星 / 贤者 / 幻术师）、**赤魔 / 召唤**，或在**新月岛**携带幻影职业**药剂师**且已习得**苏生**（此时任意职业均可触发）；
-- 鼠标悬停在一名**已死亡**的玩家上（悬停**小队列表**或**场景中的人物模型**均可识别）。
+- 鼠标**悬停或点选**过一名**已死亡**的玩家（**小队列表**或**场景中的人物模型**均可识别）。
+
+目标带**记忆**：悬停/点选过死亡玩家后，即使鼠标马上移回 boss 也会继续追踪并复活他；期间悬停/点选了**另一名**死亡玩家则新目标覆盖旧目标。目标被他人拉起或复活后自动清除。
 
 **English**: The plugin checks every frame and automatically starts the raise sequence when both conditions are met:
 
 - Your current job has a raise: healers (WHM / SCH / AST / SGE / CNJ), **RDM / SMN**, or — inside the **Occult Crescent** — any job with the **Phantom Chemist** job equipped and **Revive** learned;
-- Your mouse is hovering over a **dead** player (both the **party list** and the **3D character model** are recognized).
+- Your mouse has **hovered over or clicked** a **dead** player (both the **party list** and the **3D character model** are recognized).
+
+Target **memory**: once a dead player is hovered/clicked, the plugin keeps tracking them even after your mouse returns to the boss; hovering/clicking **another** dead player overwrites the previous one. The memory clears automatically once the target is raised.
 
 ### 2. 智能施放 / Smart casting
 

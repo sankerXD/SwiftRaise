@@ -62,6 +62,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private DateTime swiftcastDeadline;
     private readonly Dictionary<ulong, DateTime> lastAttempt = new();
 
+    // 记忆中的复活目标: 最近一次悬停/点选的死亡玩家, 鼠标移开后仍持续追踪, 新目标覆盖旧目标
+    private ulong candidateId;
+    private ulong lastHoverId;
+    private ulong lastHardTargetId;
+
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         this.pluginInterface = pluginInterface;
@@ -156,11 +161,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (!hasRaise && !reviveReady)
             return;
 
-        // 鼠标悬停目标: 必须是已死亡且尚未被拉起的玩家
-        if (ResolveMouseOverTarget() is not IPlayerCharacter target)
-            return;
+        // 更新记忆目标(悬停或点选到新的死亡玩家时覆盖), 再校验其是否仍需复活
+        UpdateCandidate();
 
-        if (target.CurrentHp > 0 || HasStatus(target, RaisePendingStatusId))
+        var target = ResolveCandidate();
+        if (target == null)
             return;
 
         // 对同一目标限频, 避免悬停期间反复触发
@@ -214,6 +219,46 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         return false;
     }
+
+    /// <summary>悬停或点选到"新的"死亡玩家时, 覆盖记忆目标(变化检测保证最近操作的目标优先).</summary>
+    private void UpdateCandidate()
+    {
+        var hover = ResolveMouseOverTarget();
+        var hoverId = hover?.GameObjectId ?? 0;
+        if (hoverId != lastHoverId)
+        {
+            lastHoverId = hoverId;
+            if (IsDeadPlayer(hover))
+                candidateId = hoverId;
+        }
+
+        var hardTarget = TargetManager.Target;
+        var hardTargetId = hardTarget?.GameObjectId ?? 0;
+        if (hardTargetId != lastHardTargetId)
+        {
+            lastHardTargetId = hardTargetId;
+            if (IsDeadPlayer(hardTarget))
+                candidateId = hardTargetId;
+        }
+    }
+
+    /// <summary>取出记忆目标; 目标已复活/已被拉起/不存在时清除记忆并返回 null.</summary>
+    private IPlayerCharacter? ResolveCandidate()
+    {
+        if (candidateId == 0)
+            return null;
+
+        if (ObjectTable.SearchById(candidateId) is IPlayerCharacter pc
+            && pc.CurrentHp == 0
+            && !HasStatus(pc, RaisePendingStatusId))
+            return pc;
+
+        candidateId = 0;
+        return null;
+    }
+
+    private static bool IsDeadPlayer(IGameObject? obj)
+        => obj is IPlayerCharacter { CurrentHp: 0 };
 
     private IGameObject? ResolveMouseOverTarget()
     {
