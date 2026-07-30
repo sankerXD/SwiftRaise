@@ -50,7 +50,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         [35] = 7523,  // 赤魔法师: 赤复活
     };
 
-    private enum State { Idle, WaitingSwiftcast }
+    private enum State { Idle, WaitingSwiftcast, TryingRaise }
 
     private readonly IDalamudPluginInterface pluginInterface;
     private readonly Configuration config;
@@ -59,7 +59,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private State state = State.Idle;
     private ulong pendingTargetId;
     private uint pendingRaiseAction;
-    private DateTime swiftcastDeadline;
+    private DateTime stateDeadline;
     private readonly Dictionary<ulong, DateTime> lastAttempt = new();
 
     // 记忆中的复活目标: 最近一次悬停/点选的死亡玩家, 鼠标移开后仍持续追踪, 新目标覆盖旧目标
@@ -130,7 +130,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         // 已经用了即刻, 在等buff生效
         if (state == State.WaitingSwiftcast)
         {
-            if (DateTime.UtcNow > swiftcastDeadline)
+            if (DateTime.UtcNow > stateDeadline)
             {
                 state = State.Idle; // 即刻没生效(被打断等), 放弃本次, 等下一轮检测
                 return;
@@ -138,11 +138,24 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
             if (HasStatus(player, SwiftcastStatusId))
             {
-                // 即刻buff刚上身时往往还处于即刻自身的动画锁中, UseAction会被拒绝;
-                // 因此逐帧重试直到游戏接受(成功返回true), 而不是只试一次
-                if (ActionManager.Instance()->UseAction(ActionType.Action, pendingRaiseAction, pendingTargetId))
-                    state = State.Idle;
+                state = State.TryingRaise;
+                stateDeadline = DateTime.UtcNow.AddSeconds(3.0);
             }
+
+            return;
+        }
+
+        // 逐帧尝试施放复活, 直到游戏接受(动画锁/GCD转动期间UseAction会被拒绝)或超时
+        if (state == State.TryingRaise)
+        {
+            if (DateTime.UtcNow > stateDeadline)
+            {
+                state = State.Idle;
+                return;
+            }
+
+            if (ActionManager.Instance()->UseAction(ActionType.Action, pendingRaiseAction, pendingTargetId))
+                state = State.Idle;
 
             return;
         }
@@ -175,7 +188,6 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         lastAttempt[target.GameObjectId] = now;
         pendingTargetId = target.GameObjectId;
-        pendingRaiseAction = raiseAction;
 
         // 身上已有即刻(赤魔的连续咏唱同理): 直接秒读复活
         var hasInstant = HasStatus(player, SwiftcastStatusId)
@@ -183,28 +195,37 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         if (hasRaise && hasInstant)
         {
-            am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
+            StartRaise(raiseAction, now);
             ChatGui.Print($"[即刻复活] 复活 {target.Name}");
         }
         else if (hasRaise && am->GetActionStatus(ActionType.Action, SwiftcastActionId) == 0)
         {
             am->UseAction(ActionType.Action, SwiftcastActionId);
+            pendingRaiseAction = raiseAction;
             state = State.WaitingSwiftcast;
-            swiftcastDeadline = now.AddSeconds(3.0);
+            stateDeadline = now.AddSeconds(3.0);
             ChatGui.Print($"[即刻复活] 即刻咏唱 → 复活 {target.Name}");
         }
         else if (reviveReady)
         {
             // 没有即刻可用: 新月岛药剂师"苏生"瞬发拉人(无复活技能的职业也走这里)
-            am->UseAction(ActionType.Action, ChemistReviveActionId, pendingTargetId);
+            StartRaise(ChemistReviveActionId, now);
             ChatGui.Print($"[即刻复活] 苏生 {target.Name}");
         }
         else
         {
             // 即刻冷却中且无苏生: 硬读复活
-            am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
+            StartRaise(raiseAction, now);
             ChatGui.Print($"[即刻复活] 即刻冷却中，读条复活 {target.Name}");
         }
+    }
+
+    /// <summary>进入 TryingRaise 状态: 逐帧尝试对记忆目标施放指定技能, 直到 GCD/动画锁允许.</summary>
+    private void StartRaise(uint actionId, DateTime now)
+    {
+        pendingRaiseAction = actionId;
+        state = State.TryingRaise;
+        stateDeadline = now.AddSeconds(3.0);
     }
 
     // ---------- 工具 ----------
