@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       # 下载国服卫月(ottercorp)的 Dalamud 程序集, 供编译引用
       # 注意: 正式版轨道是 master 分支根目录的 latest.7z (stg/canary 才是 zip)
