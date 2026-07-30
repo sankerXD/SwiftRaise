@@ -67,8 +67,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         // 右上角原生信息栏(艾欧泽亚时间/本地时间/服务器 那一条)中的开关条目
         dtrEntry = DtrBar.Get("SwiftRaise");
-        // 若你的卫月版本 OnClick 带事件参数(编译报错时), 改成: dtrEntry.OnClick = _ => Toggle();
-        dtrEntry.OnClick = Toggle;
+        dtrEntry.OnClick = _ => Toggle();
         UpdateDtrEntry();
 
         Framework.Update += OnFrameworkUpdate;
@@ -109,7 +108,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        var player = ClientState.LocalPlayer;
+        var player = ObjectTable.LocalPlayer; // API 15 起 LocalPlayer 从 IClientState 移到 IObjectTable
         if (player == null)
         {
             state = State.Idle;
