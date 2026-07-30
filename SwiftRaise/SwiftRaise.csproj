@@ -1,0 +1,26 @@
+<Project Sdk="Dalamud.NET.Sdk/12.0.2">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Description>治疗职业一键即刻+复活鼠标悬停的倒地队友</Description>
+    <PackageProjectUrl></PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!--
+    国服卫月(Dalamud CN)环境:
+    默认从 %AppData%\XIVLauncher\addon\Hooks\dev 读取 Dalamud 程序集。
+    如果你的卫月安装在别的位置(例如 XIVLauncherCN), 用环境变量 DALAMUD_HOME
+    指向包含 Dalamud.dll 的目录, 或取消下面注释并改成你的路径:
+  -->
+  <!--
+  <PropertyGroup>
+    <DalamudLibPath>$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
+  -->
+</Project>

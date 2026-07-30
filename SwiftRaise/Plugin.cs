@@ -1,0 +1,211 @@
+using System;
+using System.Collections.Generic;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Command;
+using Dalamud.Game.Gui.Dtr;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.IoC;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+
+namespace SwiftRaise;
+
+public sealed unsafe class Plugin : IDalamudPlugin
+{
+    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
+    [PluginService] internal static IFramework Framework { get; private set; } = null!;
+    [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
+    [PluginService] internal static ITargetManager TargetManager { get; private set; } = null!;
+    [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
+    [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
+
+    private const string CommandName = "/sres";
+
+    private const uint SwiftcastActionId = 7561;
+    private const uint SwiftcastStatusId = 167;
+    private const uint RaisePendingStatusId = 148; // 目标身上的"复活"待确认状态
+
+    // 同一个目标两次尝试之间的最小间隔, 防止悬停期间每帧重复施放
+    private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(8);
+
+    // 职业ID -> 复活技能ID
+    private static readonly Dictionary<uint, uint> RaiseActions = new()
+    {
+        [6]  = 125,   // 幻术师: 复活
+        [24] = 125,   // 白魔法师: 复活
+        [28] = 173,   // 学者: 复苏
+        [33] = 3603,  // 占星术士: 生辰
+        [40] = 24287, // 贤者: 复苏
+    };
+
+    private enum State { Idle, WaitingSwiftcast }
+
+    private readonly IDalamudPluginInterface pluginInterface;
+    private readonly Configuration config;
+    private readonly IDtrBarEntry dtrEntry;
+
+    private State state = State.Idle;
+    private ulong pendingTargetId;
+    private uint pendingRaiseAction;
+    private DateTime swiftcastDeadline;
+    private readonly Dictionary<ulong, DateTime> lastAttempt = new();
+
+    public Plugin(IDalamudPluginInterface pluginInterface)
+    {
+        this.pluginInterface = pluginInterface;
+        config = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "开/关 自动即刻复活",
+        });
+
+        // 右上角原生信息栏(艾欧泽亚时间/本地时间/服务器 那一条)中的开关条目
+        dtrEntry = DtrBar.Get("SwiftRaise");
+        // 若你的卫月版本 OnClick 带事件参数(编译报错时), 改成: dtrEntry.OnClick = _ => Toggle();
+        dtrEntry.OnClick = Toggle;
+        UpdateDtrEntry();
+
+        Framework.Update += OnFrameworkUpdate;
+    }
+
+    public void Dispose()
+    {
+        Framework.Update -= OnFrameworkUpdate;
+        dtrEntry.Remove();
+        CommandManager.RemoveHandler(CommandName);
+    }
+
+    private void OnCommand(string command, string args) => Toggle();
+
+    private void Toggle()
+    {
+        config.Enabled = !config.Enabled;
+        pluginInterface.SavePluginConfig(config);
+        UpdateDtrEntry();
+        ChatGui.Print($"[即刻复活] 自动复活已{(config.Enabled ? "开启" : "关闭")}。");
+        if (!config.Enabled)
+            state = State.Idle;
+    }
+
+    private void UpdateDtrEntry()
+    {
+        var builder = new SeStringBuilder();
+        if (config.Enabled)
+            builder.AddUiForeground("复活:开", 45); // 绿色
+        else
+            builder.AddUiForeground("复活:关", 17); // 红色
+
+        dtrEntry.Text = builder.Build();
+        dtrEntry.Tooltip = $"自动即刻复活: {(config.Enabled ? "已开启" : "已关闭")}\n点击切换 (也可用 /sres)";
+    }
+
+    // ---------- 主循环 ----------
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        var player = ClientState.LocalPlayer;
+        if (player == null)
+        {
+            state = State.Idle;
+            return;
+        }
+
+        // 已经用了即刻, 在等buff生效
+        if (state == State.WaitingSwiftcast)
+        {
+            if (DateTime.UtcNow > swiftcastDeadline)
+            {
+                state = State.Idle; // 即刻没生效(被打断等), 放弃本次, 等下一轮检测
+                return;
+            }
+
+            if (HasStatus(player, SwiftcastStatusId))
+            {
+                state = State.Idle;
+                ActionManager.Instance()->UseAction(ActionType.Action, pendingRaiseAction, pendingTargetId);
+            }
+
+            return;
+        }
+
+        if (!config.Enabled || ClientState.IsPvP)
+            return;
+
+        if (player.CurrentHp == 0 || player.IsCasting)
+            return;
+
+        if (!RaiseActions.TryGetValue(player.ClassJob.RowId, out var raiseAction))
+            return;
+
+        // 鼠标悬停目标: 必须是已死亡且尚未被拉起的玩家
+        if (ResolveMouseOverTarget() is not IPlayerCharacter target)
+            return;
+
+        if (target.CurrentHp > 0 || HasStatus(target, RaisePendingStatusId))
+            return;
+
+        // 对同一目标限频, 避免悬停期间反复触发
+        var now = DateTime.UtcNow;
+        if (lastAttempt.TryGetValue(target.GameObjectId, out var last) && now - last < RetryInterval)
+            return;
+
+        lastAttempt[target.GameObjectId] = now;
+        pendingTargetId = target.GameObjectId;
+        pendingRaiseAction = raiseAction;
+
+        var am = ActionManager.Instance();
+
+        if (HasStatus(player, SwiftcastStatusId))
+        {
+            // 身上已有即刻, 直接秒读
+            am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
+            ChatGui.Print($"[即刻复活] 复活 {target.Name}");
+        }
+        else if (am->GetActionStatus(ActionType.Action, SwiftcastActionId) == 0)
+        {
+            am->UseAction(ActionType.Action, SwiftcastActionId);
+            state = State.WaitingSwiftcast;
+            swiftcastDeadline = now.AddSeconds(2.0);
+            ChatGui.Print($"[即刻复活] 即刻咏唱 → 复活 {target.Name}");
+        }
+        else
+        {
+            // 即刻冷却中: 硬读复活
+            am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
+            ChatGui.Print($"[即刻复活] 即刻冷却中，读条复活 {target.Name}");
+        }
+    }
+
+    // ---------- 工具 ----------
+
+    private static bool HasStatus(IBattleChara chara, uint statusId)
+    {
+        foreach (var status in chara.StatusList)
+        {
+            if (status.StatusId == statusId)
+                return true;
+        }
+
+        return false;
+    }
+
+    private IGameObject? ResolveMouseOverTarget()
+    {
+        // 场景中悬停人物模型/名牌
+        if (TargetManager.MouseOverTarget != null)
+            return TargetManager.MouseOverTarget;
+
+        // 悬停小队列表等UI元素
+        var pronoun = PronounModule.Instance();
+        if (pronoun != null && pronoun->UiMouseOverTarget != null)
+            return ObjectTable.CreateObjectReference((nint)pronoun->UiMouseOverTarget);
+
+        return null;
+    }
+}

@@ -1,0 +1,91 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch: # 允许在 Actions 页面手动触发
+
+permissions:
+  contents: write # 发布 Release + 回写 repo.json 需要
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # 下载国服卫月(ottercorp)的 Dalamud 程序集, 供编译引用
+      - name: Download Dalamud (CN)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ottercorp/dalamud-distrib/main/latest.zip" -OutFile latest.zip
+          Expand-Archive -Path latest.zip -DestinationPath "$env:USERPROFILE\dalamud"
+          echo "DALAMUD_HOME=$env:USERPROFILE\dalamud" >> $env:GITHUB_ENV
+
+      # 推 v1.2.3 标签时, 用标签号作为插件版本号编译
+      - name: Build
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_NAME -match '^v(.+)$') {
+            dotnet build SwiftRaise/SwiftRaise.csproj -c Release "-p:Version=$($Matches[1])"
+          } else {
+            dotnet build SwiftRaise/SwiftRaise.csproj -c Release
+          }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SwiftRaise
+          path: SwiftRaise/bin/Release/SwiftRaise/
+
+      # ---------- 以下仅在推送 v* 标签(发版)时执行 ----------
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SwiftRaise/bin/Release/SwiftRaise/latest.zip
+
+      # 自动生成 Dalamud 自定义仓库清单 repo.json 并提交回 main 分支
+      - name: Update repo.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $manifest = Get-Content SwiftRaise/bin/Release/SwiftRaise/SwiftRaise.json -Raw | ConvertFrom-Json
+          $download = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:GITHUB_REF_NAME/latest.zip"
+          $entry = [ordered]@{
+            Author             = $manifest.Author
+            Name               = $manifest.Name
+            InternalName       = $manifest.InternalName
+            Punchline          = $manifest.Punchline
+            Description        = $manifest.Description
+            Tags               = $manifest.Tags
+            ApplicableVersion  = "any"
+            RepoUrl            = "https://github.com/$env:GITHUB_REPOSITORY"
+            AssemblyVersion    = $manifest.AssemblyVersion
+            DalamudApiLevel    = $manifest.DalamudApiLevel
+            DownloadLinkInstall = $download
+            DownloadLinkUpdate  = $download
+            DownloadLinkTesting = $download
+            IsHide             = $false
+            IsTestingExclusive = $false
+            DownloadCount      = 0
+            LastUpdate         = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+          }
+          ConvertTo-Json -InputObject @($entry) -Depth 5 -AsArray | Out-File repo.json -Encoding utf8
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add repo.json
+          git commit -m "chore: update repo.json for $env:GITHUB_REF_NAME" || echo "no changes"
+          git push origin main
