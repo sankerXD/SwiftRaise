@@ -1,4 +1,4 @@
-# SwiftRaise — 自动即刻复活插件 / Auto Swiftcast-Raise Plugin
+# SwiftRaise — ff14自动即刻复活插件 / Auto Swiftcast-Raise Plugin
 
 FF14 国服卫月（Dalamud CN）插件：治疗职业**自动**「即刻咏唱 + 复活」鼠标悬停的倒地玩家，无需宏、无需按键。
 
