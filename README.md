@@ -12,35 +12,37 @@ A Dalamud plugin for FFXIV (CN client): when playing a healer, **automatically**
 
 **中文**：插件每帧检测，当同时满足以下两个条件时自动施放复活流程：
 
-- 当前职业是治疗（白魔 / 学者 / 占星 / 贤者 / 幻术师）；
+- 当前职业拥有复活手段：治疗（白魔 / 学者 / 占星 / 贤者 / 幻术师）、**赤魔 / 召唤**，或在**新月岛**携带幻影职业**药剂师**且已习得**苏生**（此时任意职业均可触发）；
 - 鼠标悬停在一名**已死亡**的玩家上（悬停**小队列表**或**场景中的人物模型**均可识别）。
 
 **English**: The plugin checks every frame and automatically starts the raise sequence when both conditions are met:
 
-- Your current job is a healer (WHM / SCH / AST / SGE / CNJ);
+- Your current job has a raise: healers (WHM / SCH / AST / SGE / CNJ), **RDM / SMN**, or — inside the **Occult Crescent** — any job with the **Phantom Chemist** job equipped and **Revive** learned;
 - Your mouse is hovering over a **dead** player (both the **party list** and the **3D character model** are recognized).
 
 ### 2. 智能施放 / Smart casting
 
 根据即刻咏唱的状态自动选择最优方式：
 
-| 即刻状态 | 行为 |
+| 状态 | 行为 |
 |---|---|
-| 身上已有即刻 buff | 直接秒读复活 |
+| 身上已有即刻 buff（赤魔的连续咏唱同理） | 直接秒读复活 |
 | 即刻可用 | 先放即刻，buff 生效后自动释放复活 |
-| 即刻冷却中 | 直接硬读复活 |
+| 没有即刻，但新月岛药剂师的苏生可用 | 直接用**苏生**瞬发拉人 |
+| 即刻冷却中且无苏生 | 直接硬读复活 |
 
-复活技能按职业自动匹配：复活（白魔/幻术）、复苏（学者）、生辰（占星）、复苏（贤者）。
+复活技能按职业自动匹配：复活（白魔/幻术）、复苏（学者）、生辰（占星）、复苏（贤者）、复生（召唤）、赤复活（赤魔）、苏生（新月岛药剂师）。
 
-Picks the best cast path based on Swiftcast availability:
+Picks the best cast path available:
 
-| Swiftcast state | Behavior |
+| State | Behavior |
 |---|---|
-| Swiftcast buff already active | Instant-cast Raise immediately |
+| Swiftcast buff active (RDM Dualcast counts too) | Instant-cast Raise immediately |
 | Swiftcast ready | Use Swiftcast first, then Raise once the buff is up |
-| Swiftcast on cooldown | Hardcast Raise directly |
+| No Swiftcast, but Phantom Chemist Revive is up | Use instant **Revive** |
+| Swiftcast on cooldown, no Revive | Hardcast Raise directly |
 
-The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrection (SCH), Ascend (AST), Egeiro (SGE).
+The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrection (SCH/SMN), Ascend (AST), Egeiro (SGE), Verraise (RDM), Revive (Phantom Chemist).
 
 ### 3. 原生信息栏开关 / Server info bar toggle
 

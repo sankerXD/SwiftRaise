@@ -28,7 +28,12 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     private const uint SwiftcastActionId = 7561;
     private const uint SwiftcastStatusId = 167;
+    private const uint DualcastStatusId = 1249;   // 赤魔"连续咏唱": 有此buff时赤复活同样瞬发
     private const uint RaisePendingStatusId = 148; // 目标身上的"复活"待确认状态
+    private const uint RedMageJobId = 35;
+
+    // 新月岛幻影职业·药剂师: 苏生(瞬发, 5秒复唱)。只有在新月岛携带药剂师且已习得时才可用
+    private const uint ChemistReviveActionId = 41634;
 
     // 同一个目标两次尝试之间的最小间隔, 防止悬停期间每帧重复施放
     private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(8);
@@ -41,6 +46,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
         [28] = 173,   // 学者: 复苏
         [33] = 3603,  // 占星术士: 生辰
         [40] = 24287, // 贤者: 复苏
+        [27] = 173,   // 召唤师: 复生
+        [35] = 7523,  // 赤魔法师: 赤复活
     };
 
     private enum State { Idle, WaitingSwiftcast }
@@ -139,7 +146,12 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (player.CurrentHp == 0 || player.IsCasting)
             return;
 
-        if (!RaiseActions.TryGetValue(player.ClassJob.RowId, out var raiseAction))
+        var am = ActionManager.Instance();
+
+        // 本职业有无复活技能(治疗/赤魔/召唤); 新月岛幻影药剂师的"苏生"是否可用(已习得且不在冷却)
+        var hasRaise = RaiseActions.TryGetValue(player.ClassJob.RowId, out var raiseAction);
+        var reviveReady = am->GetActionStatus(ActionType.Action, ChemistReviveActionId) == 0;
+        if (!hasRaise && !reviveReady)
             return;
 
         // 鼠标悬停目标: 必须是已死亡且尚未被拉起的玩家
@@ -158,24 +170,31 @@ public sealed unsafe class Plugin : IDalamudPlugin
         pendingTargetId = target.GameObjectId;
         pendingRaiseAction = raiseAction;
 
-        var am = ActionManager.Instance();
+        // 身上已有即刻(赤魔的连续咏唱同理): 直接秒读复活
+        var hasInstant = HasStatus(player, SwiftcastStatusId)
+                         || (player.ClassJob.RowId == RedMageJobId && HasStatus(player, DualcastStatusId));
 
-        if (HasStatus(player, SwiftcastStatusId))
+        if (hasRaise && hasInstant)
         {
-            // 身上已有即刻, 直接秒读
             am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
             ChatGui.Print($"[即刻复活] 复活 {target.Name}");
         }
-        else if (am->GetActionStatus(ActionType.Action, SwiftcastActionId) == 0)
+        else if (hasRaise && am->GetActionStatus(ActionType.Action, SwiftcastActionId) == 0)
         {
             am->UseAction(ActionType.Action, SwiftcastActionId);
             state = State.WaitingSwiftcast;
             swiftcastDeadline = now.AddSeconds(2.0);
             ChatGui.Print($"[即刻复活] 即刻咏唱 → 复活 {target.Name}");
         }
+        else if (reviveReady)
+        {
+            // 没有即刻可用: 新月岛药剂师"苏生"瞬发拉人(无复活技能的职业也走这里)
+            am->UseAction(ActionType.Action, ChemistReviveActionId, pendingTargetId);
+            ChatGui.Print($"[即刻复活] 苏生 {target.Name}");
+        }
         else
         {
-            // 即刻冷却中: 硬读复活
+            // 即刻冷却中且无苏生: 硬读复活
             am->UseAction(ActionType.Action, raiseAction, pendingTargetId);
             ChatGui.Print($"[即刻复活] 即刻冷却中，读条复活 {target.Name}");
         }
