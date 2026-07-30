@@ -23,11 +23,12 @@ jobs:
           dotnet-version: 9.0.x
 
       # 下载国服卫月(ottercorp)的 Dalamud 程序集, 供编译引用
+      # 注意: 正式版轨道是 master 分支根目录的 latest.7z (stg/canary 才是 zip)
       - name: Download Dalamud (CN)
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ottercorp/dalamud-distrib/main/latest.zip" -OutFile latest.zip
-          Expand-Archive -Path latest.zip -DestinationPath "$env:USERPROFILE\dalamud"
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ottercorp/dalamud-distrib/master/latest.7z" -OutFile dalamud.7z
+          7z x dalamud.7z "-o$env:USERPROFILE\dalamud" -y
           echo "DALAMUD_HOME=$env:USERPROFILE\dalamud" >> $env:GITHUB_ENV
 
       # 推 v1.2.3 标签时, 用标签号作为插件版本号编译
