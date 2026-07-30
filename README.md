@@ -6,7 +6,7 @@
 
 ---
 
-<p align="center"><b>FF14 自动即刻复活插件 · Auto Swiftcast-Raise the dead player under your cursor</b></p>
+<p align="center"><b>FF14 自动复活插件 · Auto Swiftcast-Raise the dead player under your cursor</b></p>
 
 <p align="center">
 国服卫月（Dalamud CN）插件：拥有复活能力时<b>自动</b>「即刻咏唱 + 复活」鼠标悬停的倒地玩家，无需宏、无需按键。<br/>
