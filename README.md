@@ -64,18 +64,18 @@ The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrec
 **中文**：
 
 - 目标身上已有「复活」待确认状态（已被他人拉起）时不重复施放；
-- 同一目标 8 秒内只尝试一次，避免鼠标停留期间反复触发；
+- 同一目标 2 秒内只尝试一次，避免鼠标停留期间反复触发；
 - PVP 区域不触发（PVP 技能 ID 不同）；
 - 自己倒地或正在读条时不触发；
-- 等待即刻生效有 2 秒超时，被打断则放弃本次，等待下一轮检测。
+- 等待即刻生效有 3 秒超时（期间逐帧重试复活直到动画锁结束），被打断则放弃本次，等待下一轮检测。
 
 **English**:
 
 - Skips targets that already have the Raise (resurrection pending) status;
-- At most one attempt per target every 8 seconds, so hovering doesn't re-trigger every frame;
+- At most one attempt per target every 2 seconds, so hovering doesn't re-trigger every frame;
 - Disabled in PvP areas (PvP action IDs differ);
 - Won't trigger while you are dead or casting;
-- Waiting for the Swiftcast buff times out after 2 seconds (e.g. if interrupted), then waits for the next detection cycle.
+- Waiting for the Swiftcast buff times out after 3 seconds (retrying every frame until the animation lock ends), then waits for the next detection cycle.
 
 ---
 

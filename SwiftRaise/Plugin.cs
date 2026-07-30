@@ -36,7 +36,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private const uint ChemistReviveActionId = 41634;
 
     // 同一个目标两次尝试之间的最小间隔, 防止悬停期间每帧重复施放
-    private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(2);
 
     // 职业ID -> 复活技能ID
     private static readonly Dictionary<uint, uint> RaiseActions = new()
@@ -133,8 +133,10 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
             if (HasStatus(player, SwiftcastStatusId))
             {
-                state = State.Idle;
-                ActionManager.Instance()->UseAction(ActionType.Action, pendingRaiseAction, pendingTargetId);
+                // 即刻buff刚上身时往往还处于即刻自身的动画锁中, UseAction会被拒绝;
+                // 因此逐帧重试直到游戏接受(成功返回true), 而不是只试一次
+                if (ActionManager.Instance()->UseAction(ActionType.Action, pendingRaiseAction, pendingTargetId))
+                    state = State.Idle;
             }
 
             return;
@@ -183,7 +185,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         {
             am->UseAction(ActionType.Action, SwiftcastActionId);
             state = State.WaitingSwiftcast;
-            swiftcastDeadline = now.AddSeconds(2.0);
+            swiftcastDeadline = now.AddSeconds(3.0);
             ChatGui.Print($"[即刻复活] 即刻咏唱 → 复活 {target.Name}");
         }
         else if (reviveReady)
