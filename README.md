@@ -22,7 +22,7 @@ A Dalamud plugin for FFXIV (CN client): when playing a healer, **automatically**
 
 ### 2. 智能施放 / Smart casting
 
-**中文**：根据即刻咏唱的状态自动选择最优方式：
+根据即刻咏唱的状态自动选择最优方式：
 
 | 即刻状态 | 行为 |
 |---|---|
@@ -32,7 +32,7 @@ A Dalamud plugin for FFXIV (CN client): when playing a healer, **automatically**
 
 复活技能按职业自动匹配：复活（白魔/幻术）、复苏（学者）、生辰（占星）、复苏（贤者）。
 
-**English**: Picks the best cast path based on Swiftcast availability:
+Picks the best cast path based on Swiftcast availability:
 
 | Swiftcast state | Behavior |
 |---|---|
