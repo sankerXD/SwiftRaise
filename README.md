@@ -115,7 +115,5 @@ The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrec
 
 ## 注意事项 / Notes
 
-- 本项目基于 `Dalamud.NET.Sdk/15.0.0`（对应卫月 Dalamud 15 / .NET 10）。如编译报 API 或运行时版本不匹配，把 csproj 中的 SDK 版本改成与当前卫月一致的版本。
-- 技能 ID：即刻咏唱 7561，复活(白魔/幻术) 125，复苏(学者) 173，生辰(占星) 3603，复苏(贤者) 24287。
-- 国服使用任何插件都有账号风险，请自行斟酌，尽量避免在他人可见的场合表现出明显的插件行为。
-  Using any plugin on the CN server carries account risk — use at your own discretion and avoid visibly plugin-like behavior around other players.
+- 国服使用任何插件都有账号风险，使用本插件即代表你已知晓并接受，**后果自负**。请自行斟酌，尽量避免在他人可见的场合表现出明显的插件行为。
+  Using any plugin on the CN server carries account risk — by using this plugin you accept that risk. **Use at your own risk**, and avoid visibly plugin-like behavior around other players.
