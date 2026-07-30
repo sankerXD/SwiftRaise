@@ -13,14 +13,15 @@
     ],
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/sankerXD/SwiftRaise",
-    "AssemblyVersion": "1.1.0.0",
+    "IconUrl": "https://raw.githubusercontent.com/sankerXD/SwiftRaise/main/images/icon.png",
+    "AssemblyVersion": "1.1.1.0",
     "DalamudApiLevel": 15,
-    "DownloadLinkInstall": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
-    "DownloadLinkTesting": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.0/latest.zip",
+    "DownloadLinkInstall": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.1/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.1/latest.zip",
+    "DownloadLinkTesting": "https://github.com/sankerXD/SwiftRaise/releases/download/v1.1.1/latest.zip",
     "IsHide": false,
     "IsTestingExclusive": false,
     "DownloadCount": 0,
-    "LastUpdate": 1785389494
+    "LastUpdate": 1785394367
   }
 ]
