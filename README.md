@@ -89,13 +89,15 @@ The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrec
 
 ### 方式一：自定义插件仓库（推荐，可远程安装+自动更新）
 
-1. 游戏内 `/xlsettings` → 试验性功能 → 自定义插件仓库（Custom Plugin Repositories），添加：
+> [!IMPORTANT]
+> **插件仓库地址 / Plugin repo URL：**
+>
+> ```
+> https://raw.githubusercontent.com/sankerXD/SwiftRaise/main/repo.json
+> ```
 
-   ```
-   https://raw.githubusercontent.com/<你的用户名>/SwiftRaise/main/repo.json
-   ```
-
-2. 保存后打开 `/xlplugins`，搜索 SwiftRaise 直接安装；以后发新版会自动提示更新。
+1. 游戏内 `/xlsettings` → 试验性功能 → **自定义插件仓库**（Custom Plugin Repositories），粘贴上面的地址并保存；
+2. 打开 `/xlplugins`，搜索 **SwiftRaise** 直接安装；以后发新版会自动提示更新。
 
 > `repo.json` 由 CI 在**首次推送 `v*` 标签发版后**自动生成并提交到 main 分支，之前该地址是 404。发版方式：
 >
