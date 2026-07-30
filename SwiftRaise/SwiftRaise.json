@@ -5,6 +5,7 @@
   "Description": "当前职业拥有复活手段时(治疗/赤魔/召唤，或新月岛携带药剂师且习得苏生)，只要鼠标悬停到已死亡的玩家(小队列表或场景中均可)，就会自动使用即刻咏唱+复活；没有即刻时优先用苏生瞬发拉人。开关集成在右上角原生信息栏(服务器信息栏)中，点击切换，也可用 /sres。",
   "InternalName": "SwiftRaise",
   "ApplicableVersion": "any",
+  "IconUrl": "https://raw.githubusercontent.com/sankerXD/SwiftRaise/main/images/icon.png",
   "Tags": [ "healer", "raise", "复活", "治疗" ],
   "RepoUrl": ""
 }
