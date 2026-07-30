@@ -1,8 +1,17 @@
-# SwiftRaise — ff14自动即刻复活插件 / Auto Swiftcast-Raise Plugin
+<p align="center">
+  <img src="images/icon.png" width="180" alt="SwiftRaise" />
+</p>
 
-FF14 国服卫月（Dalamud CN）插件：治疗职业**自动**「即刻咏唱 + 复活」鼠标悬停的倒地玩家，无需宏、无需按键。
+<h1 align="center">SwiftRaise</h1>
 
-A Dalamud plugin for FFXIV (CN client): when playing a healer, **automatically** casts Swiftcast + Raise on the dead player under your mouse cursor — no macros, no keybinds.
+---
+
+<p align="center"><b>FF14 自动即刻复活插件 · Auto Swiftcast-Raise the dead player under your cursor</b></p>
+
+<p align="center">
+国服卫月（Dalamud CN）插件：拥有复活能力时<b>自动</b>「即刻咏唱 + 复活」鼠标悬停的倒地玩家，无需宏、无需按键。<br/>
+A Dalamud plugin for FFXIV (CN client): <b>automatically</b> casts Swiftcast + Raise on the dead player under your mouse cursor — no macros, no keybinds.
+</p>
 
 ---
 

@@ -71,6 +71,7 @@ jobs:
             Tags               = $manifest.Tags
             ApplicableVersion  = "any"
             RepoUrl            = "https://github.com/$env:GITHUB_REPOSITORY"
+            IconUrl            = "https://raw.githubusercontent.com/$env:GITHUB_REPOSITORY/main/images/icon.png"
             AssemblyVersion    = $manifest.AssemblyVersion
             DalamudApiLevel    = $manifest.DalamudApiLevel
             DownloadLinkInstall = $download
