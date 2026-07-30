@@ -81,7 +81,7 @@ jobs:
             DownloadCount      = 0
             LastUpdate         = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
           }
-          ConvertTo-Json -InputObject @($entry) -Depth 5 -AsArray | Out-File repo.json -Encoding utf8
+          ConvertTo-Json -InputObject $entry -Depth 5 -AsArray | Out-File repo.json -Encoding utf8
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
