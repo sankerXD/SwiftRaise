@@ -59,9 +59,9 @@ The raise action is matched to your job automatically: Raise (WHM/CNJ), Resurrec
 
 ### 3. 原生信息栏开关 / Server info bar toggle
 
-**中文**：开关集成在游戏**右上角原生信息栏**（显示「艾欧泽亚时间 / 本地时间 / 当前服务器」的那一条）中，显示为「复活:开」/「复活:关」（系统原生黄色，状态仅以文字区分），**点击即可切换**，悬停有提示；也可用命令 `/sres` 切换。开关状态自动保存，重启游戏后保持。条目的显示/排序可在 `/xlsettings` → 服务器信息栏 中调整。
+**中文**：开关集成在游戏**右上角原生信息栏**（显示「艾欧泽亚时间 / 本地时间 / 当前服务器」的那一条）中，显示为「复活:开」/「复活:关」（样式与原生条目一致：标签米金色、数值白色，状态仅以文字区分），**点击即可切换**，悬停有提示；也可用命令 `/sres` 切换。开关状态自动保存，重启游戏后保持。条目的显示/排序可在 `/xlsettings` → 服务器信息栏 中调整。
 
-**English**: The toggle lives in the game's **native server info bar** (the top-right bar showing Eorzea time / local time / current world), displayed as "复活:开" / "复活:关" in the game's native system yellow (state indicated by text only). **Click it to toggle**; hovering shows a tooltip, and the `/sres` command works too. The state persists across restarts. The entry's visibility/order can be adjusted in `/xlsettings` → Server Info Bar.
+**English**: The toggle lives in the game's **native server info bar** (the top-right bar showing Eorzea time / local time / current world), displayed as "复活:开" / "复活:关" styled like the native entries (gold label + white value, state indicated by text only). **Click it to toggle**; hovering shows a tooltip, and the `/sres` command works too. The state persists across restarts. The entry's visibility/order can be adjusted in `/xlsettings` → Server Info Bar.
 
 ### 4. 防误触保护 / Safety guards
 
