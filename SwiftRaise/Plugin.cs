@@ -106,11 +106,9 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     private void UpdateDtrEntry()
     {
+        // 统一使用系统原生黄色(UIColor 25, 系统消息同款), 开关状态仅由文字区分
         var builder = new SeStringBuilder();
-        if (config.Enabled)
-            builder.AddUiForeground("复活:开", 45); // 绿色
-        else
-            builder.AddUiForeground("复活:关", 17); // 红色
+        builder.AddUiForeground(config.Enabled ? "复活:开" : "复活:关", 25);
 
         dtrEntry.Text = builder.Build();
         dtrEntry.Tooltip = $"自动即刻复活: {(config.Enabled ? "已开启" : "已关闭")}\n点击切换 (也可用 /sres)";
